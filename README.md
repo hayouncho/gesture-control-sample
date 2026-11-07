@@ -1,259 +1,51 @@
 # 손 제스처 유튜브 제어 — 개인 샘플 (조하연)
 
-> **팀 비교용 개인 샘플입니다. 팀의 최종 통합본이 아닙니다.**
-> 아래의 모든 확인 결과는 **작성자 PC 한 대**에서 얻은 것입니다. 다른 PC나 다른 브라우저 버전에서의 동작은 확인하지 않았습니다.
+컴퓨터비전 1조 팀 비교용 **개인 샘플**입니다 (최종 통합본 아님).
+웹캠으로 손동작을 인식해 유튜브 영상을 제어합니다. 작성자 PC(Windows 11)에서만 실행해 봤습니다.
 
-웹캠으로 손을 인식해서 유튜브(브라우저 탭 또는 설치형 유튜브 앱)를 제어합니다.
-웹캠 입력 → MediaPipe 손 인식 → 제스처 판별 → 유튜브 창 자동 포커스 → 단축키 전송의 흐름을 한 프로그램에서 확인할 수 있습니다.
+## 준비물
+- Windows 10/11
+- Python 3.14
+- 웹캠
+- 유튜브를 열 브라우저 (Edge, Firefox, Chrome) 또는 Edge로 설치한 유튜브 앱
 
-- 과목: 컴퓨터비전 / 1조 (고지혁, 송준섭, 조하연)
-- 제안서 역할 분담 중 **유튜브 제어 + 전체 연동** 담당자가 만든 샘플
-- 시작·종료 제스처와 모든 기준값은 **팀에서 아직 확정하지 않은 샘플용 설정**입니다
-
----
-
-## 1. 필요한 환경
-
-| 항목 | 필요 조건 | 작성자 PC에서 확인한 것 |
-|---|---|---|
-| 운영체제 | **Windows** (유튜브 창 제어에 Windows 전용 기능 사용, macOS·Linux 미지원) | Windows 11 |
-| Python | **3.14** 권장 | 3.14.0 으로 실행 확인. 3.13은 패키지 설치 파일이 있는 것만 확인(실행 미확인) |
-| 웹캠 | 노트북 내장 또는 외장 | 내장 웹캠 640×480 |
-| 유튜브 | Edge·Firefox·Chrome 의 유튜브 탭, 또는 Edge로 설치한 유튜브 앱 | Edge 156, Firefox 159, Chrome 156, Edge 유튜브 앱 (6절) |
-| 인터넷 | 처음 설치할 때 패키지·모델 다운로드 | – |
-
----
-
-## 2. 처음 설치 (`run_gui.bat` 을 누르기 전에 한 번만)
-
-`run_gui.bat` 은 이미 설치된 가상환경(`.venv`)과 모델 파일을 사용해 프로그램을 여는 역할만 합니다.
-**아래 ①~⑦을 먼저 끝내야** `run_gui.bat` 이 동작합니다.
-
-### ① Python 3.14 설치
-1. https://www.python.org/downloads/windows/ 에서 Python 3.14 Windows installer (64-bit) 를 받습니다.
-2. 설치 첫 화면에서 **`Add python.exe to PATH`** 를 체크하고 `Install Now`.
-   (GUI에 쓰는 tkinter 는 기본 설치에 포함됩니다.)
-3. 확인: 새 PowerShell 창에서
+## 설치 (처음 한 번)
+1. https://www.python.org/downloads/windows/ 에서 Python 3.14 설치 (`Add python.exe to PATH` 체크)
+2. 이 저장소에서 `Code` → `Download ZIP` → 압축 풀기
+3. 압축 푼 폴더에서 빈 곳을 Shift + 오른쪽 클릭 → `터미널에서 열기`
+4. 아래 명령을 차례로 입력
    ```powershell
-   py -3.14 --version
+   py -3.14 -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   .\.venv\Scripts\python.exe download_model.py
    ```
-   `Python 3.14.x` 가 나오면 성공입니다.
+   - 마지막 명령은 손 인식 모델(약 8MB)을 `models` 폴더에 받습니다.
+     안 되면 아래 주소에서 직접 받아 `models\hand_landmarker.task` 로 저장하세요.
+     `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task`
+5. (선택) 설치 확인: `.\.venv\Scripts\python.exe -m unittest` → 마지막에 `OK`
 
-### ② 코드 내려받기
-- GitHub 저장소 화면에서 초록색 **`Code` → `Download ZIP`** → 원하는 곳에 압축 풀기
-- (Git을 쓰는 경우) `git clone <저장소 주소>`
+## 실행
+1. 유튜브에서 영상을 하나 엽니다.
+2. 폴더의 **`run_gui.bat`** 을 더블클릭합니다. (설치를 먼저 해야 실행됩니다)
+3. 오른쪽 `제어할 유튜브` 에 영상이 나타나는지 확인합니다. 여러 개면 목록에서 고릅니다.
+4. 처음에는 **테스트 모드**(파란 띠)입니다. 실제로 제어하지 않고, 어떤 명령이 나갈지만 보여 줍니다.
+5. 제스처가 잘 인식되면 맨 위에서 **실제 제어 모드**(빨간 띠)로 바꿉니다.
+6. V 사인 1초(또는 `인식 시작` 버튼)로 인식을 켜고 제스처를 합니다.
 
-> 폴더 경로에 한글이나 공백이 있어도 됩니다 (작성자 PC 경로에도 한글·공백이 있음).
-
-### ③ 프로젝트 폴더에서 PowerShell 열기
-압축을 푼 폴더(`README.md` 가 보이는 폴더)를 탐색기로 열고, 빈 곳을 **Shift + 오른쪽 클릭 → `터미널에서 열기`**
-(또는 탐색기 주소창에 `powershell` 입력 후 Enter).
-
-### ④ 가상환경 만들기
-이 프로젝트 전용 Python 공간(`.venv` 폴더)을 만듭니다. 다른 프로젝트의 패키지와 섞이지 않게 하기 위함입니다.
-```powershell
-py -3.14 -m venv .venv
-```
-
-### ⑤ 라이브러리 설치
-```powershell
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-설치되는 것: mediapipe(손 인식), opencv-contrib-python(웹캠·화면), numpy, pillow(GUI 화면), uiautomation(유튜브 창 제어).
-> `opencv-python` 을 따로 설치하지 마세요. mediapipe가 쓰는 `opencv-contrib-python` 과 충돌합니다.
-
-### ⑥ 손 인식 모델 받기 (약 7.8MB)
-모델 파일은 저장소에 들어 있지 않습니다. 아래 명령으로 `models/hand_landmarker.task` 를 받습니다.
-```powershell
-.\.venv\Scripts\python.exe download_model.py
-```
-- 받는 주소 (Google MediaPipe 공식):
-  `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task`
-- 명령이 안 되면 위 주소를 브라우저로 열어 받은 뒤, 프로젝트 안에 `models` 폴더를 만들고
-  `models\hand_landmarker.task` 이름으로 저장해도 됩니다.
-
-### ⑦ 설치 확인 (웹캠·유튜브 없이 자동 테스트)
-```powershell
-.\.venv\Scripts\python.exe -m unittest
-```
-마지막 줄에 `OK` 가 나오면 설치가 끝난 것입니다. (작성자 PC: 53개 테스트)
-
-> 이 README의 명령은 모두 `.\.venv\Scripts\python.exe` 로 실행합니다. 가상환경을 "켜는"(`Activate.ps1`) 과정이 필요 없습니다.
-
----
-
-## 3. 실행
-
-### 데스크톱 프로그램 (권장)
-프로젝트 폴더의 **`run_gui.bat` 더블클릭** → 프로그램 창이 열립니다.
-`.venv` 나 모델 파일이 없으면 영어 안내가 나오고 멈춥니다 → 2절을 다시 확인하세요.
-
-터미널에서 열려면:
-```powershell
-.\.venv\Scripts\python.exe app_gui.py
-```
-
-### 처음 사용하는 순서
-1. 브라우저(Edge·Firefox·Chrome)나 유튜브 앱에서 **영상 페이지**를 엽니다.
-2. `run_gui.bat` 실행 → 오른쪽 `제어할 유튜브` 에 대상이 나타납니다 (3초마다 자동 검색).
-   대상이 하나면 `선택됨 (자동 선택됨)`, 여러 개면 목록에서 고릅니다.
-3. **테스트 모드(기본, 파란 띠)** 에서 제스처를 연습합니다. 실제 키는 보내지 않고 `최근 실행 명령` 에 예정 동작만 표시됩니다.
-4. 익숙해지면 맨 위 **`실제 제어 모드`(빨간 띠)** 로 바꿉니다 (확인 창이 뜹니다).
-5. **V 사인 1초** 또는 `인식 시작` 버튼으로 인식을 켜고 제스처로 제어합니다.
-6. 끝낼 때는 프로그램 창을 닫습니다 (카메라와 작업이 정리된 뒤 종료).
-
-| | 테스트 모드 (기본) | 실제 제어 모드 |
-|---|---|---|
-| 표시 | 파란 띠 | 빨간 띠 |
-| 유튜브 창 포커스 | 바꾸지 않음 | 명령이 나올 때만 선택한 유튜브 창을 앞으로 가져옴 |
-| 키 입력 | 보내지 않음 (예정 동작만 표시) | 플레이어 포커스를 확인한 뒤 단축키 1회 |
-
-| 화면 영역 | 내용 |
+## 제스처
+| 동작 | 기능 |
 |---|---|
-| 카메라 미리보기 | 손 관절, 손 모양, 손 개수·FPS, `항상 위에 표시` |
-| 인식 상태 | `인식 중`/`대기 중`, 시작/종료 버튼(V 사인과 같은 상태), 쿨다운 |
-| 제어할 유튜브 | 자동 검색된 대상 목록, `새로고침`(즉시 검색), 선택 상태 |
-| 현재 제스처 | 왼손/오른손별 손 모양 |
-| 최근 실행 명령 | 성공(초록) / 실행됨·결과 확인 못 함(주황) / 실패와 실패 단계(빨강) / 테스트(파랑) |
-| 제스처 사용법 | 제스처 표와 샘플용 설정 안내 |
+| V 사인 1초 유지 | 인식 시작 / 종료 |
+| 주먹 쥐었다 펴기 | 재생 / 일시정지 |
+| 편 손을 위 / 아래로 | 볼륨 증가 / 감소 |
+| 편 손을 오른쪽 / 왼쪽으로 | 10초 앞으로 / 뒤로 |
 
-### 터미널 버전 (단계별 확인용, 선택)
-| 명령 | 용도 |
-|---|---|
-| `.\.venv\Scripts\python.exe step1_hand_check.py` | 웹캠과 손 인식만 확인 (`q`/`ESC` 종료) |
-| `.\.venv\Scripts\python.exe run.py` | 전체 흐름, 테스트 모드 |
-| `.\.venv\Scripts\python.exe run.py --live` | 전체 흐름, 실제 제어 모드 (`r` 대상 다시 선택) |
-| `.\.venv\Scripts\python.exe check_youtube_control.py` | 웹캠 없이 자동 포커스만 확인 (볼륨 ↑ 후 ↓) |
-| `--camera 1` | 다른 웹캠 사용 (`run.py` 에 붙여서) |
+- 손 이동은 손을 잠깐 멈췄다가 빠르게 움직입니다.
+- 시작·종료 제스처와 인식 기준값(`gesture_control/config.py`)은 팀에서 정하기 전의 임시값입니다.
 
----
-
-## 4. 제스처
-
-| 동작 | 명령 | 유튜브 단축키 |
-|---|---|---|
-| V 사인(검지+중지) 1초 유지 | 인식 시작 ↔ 종료 (**샘플용 임시**) | – |
-| 주먹을 쥐었다가 0.8초 안에 펴기 | 재생 / 일시정지 | `K` |
-| 편 손을 위 / 아래로 빠르게 | 볼륨 증가 / 감소 (영상 볼륨 5%) | `↑` / `↓` |
-| 편 손을 내 오른쪽 / 왼쪽으로 빠르게 | 10초 앞으로 / 뒤로 | `L` / `J` |
-
-- 왼손·오른손 어느 손이든 같은 제스처입니다. 화면은 거울처럼 보이고, `Left`/`Right` 는 실제 왼손/오른손입니다.
-- 손 이동은 화면에 `이동 준비됨` 이 보일 때(손을 0.3초 멈춘 뒤) 빠르게 움직입니다.
-- 명령 후 1초 동안은 다음 명령을 받지 않습니다(쿨다운). 기준값은 `gesture_control/config.py` 의 `[임시]` 항목입니다.
-
----
-
-## 5. 유튜브 제어 방식 (요약)
-
-키보드 단축키를 쓰지만, **영상 플레이어에 입력 포커스가 있는지 확인한 뒤에만** 보냅니다.
-(포커스가 플레이어에 없으면 `↑/↓` 가 페이지 스크롤이 되고, 검색창에 커서가 있으면 `K/J/L` 이 글자로 입력되기 때문)
-
-실제 제어 모드에서 명령이 나올 때만:
-대상 확인 → 창 활성화 → (뒤쪽 탭이면) 탭 전환 → 플레이어 포커스(Windows UI Automation, 클릭 아님) → 포커스 확인 → 키 1회 → 결과 확인.
-한 단계라도 실패하면 **키를 보내지 않고** 실패 단계와 이유를 표시합니다. 결과 확인만 실패한 경우에도 다시 보내지 않습니다.
-
-대상 선택 규칙
-- 3초마다 자동 검색(읽기 전용 — 포커스·재생 상태를 바꾸지 않음). 재생 중·정지 상태 모두 표시
-- 제어 가능한 대상(탭·앱 합계)이 1개면 자동 선택, 여러 개면 사용자가 선택
-- 이미 선택한 대상이 있으면 다른 창이 열려도 선택 유지
-- 선택한 대상이 닫히면 그 대상용으로 대기 중이던 명령은 취소. 남은 하나가 자동 선택되면 **새 제스처부터** 적용
-- 목록 표시: `[Edge 브라우저 · 창1 · 탭2 · 현재 탭] 제목`, `[Edge 유튜브 앱 · 창2] 제목`,
-  `— 영상 선택 필요`(홈·검색·쇼츠), `— 제어 불가: 웹 페이지 정보 없음`(6절 Chrome 조건)
-
----
-
-## 6. 브라우저별 결과 (작성자 PC에서만 확인)
-
-작성자 PC: Edge 156.0.4314.58, Firefox 159.0.1, Chrome 156.0.8078.80, Edge로 설치한 유튜브 앱 (2026-11-07)
-
-| 대상 | 대상 검색 | 뒤쪽 탭 | 자동 포커스 | 영상 제어 | 작성자 PC에서 손 제스처로 확인 |
-|---|---|---|---|---|---|
-| Edge 브라우저 탭 | 지원 | 지원 | 지원 | 지원 | 확인 |
-| Edge 유튜브 앱 | 지원 | – | 지원 | 지원 | 확인 |
-| Firefox 브라우저 탭 | 지원 | 지원 | 지원 | 지원 | 확인 |
-| Chrome 브라우저 탭 (아래 조건) | 지원 | 지원 | 지원 | 지원 | 확인 (Chrome 재시작 후 포함) |
-| Chrome 유튜브 앱, Firefox 웹 앱 창 | 구현 | – | 구현 | 구현 | **미검증** |
-| 그 밖의 브라우저 (Whale, Opera 등) | 미지원 | 미지원 | 미지원 | 미지원 | – |
-
-**Chrome 조건**: Chrome이 웹 페이지 내용을 접근성 정보로 제공해야 합니다.
-작성자 PC에서는 처음에 이 정보가 없어 목록에 `제어 불가` 로 나왔고, 확인 과정에서 `chrome://accessibility` 의
-`Native accessibility API support`, `Web accessibility` 가 켜진(회색) 상태가 된 뒤부터 동작했습니다. 무엇 때문에 켜졌는지는 확인하지 못했습니다.
-Chrome 대상이 `제어 불가` 로 나오면:
-1. Chrome 주소창에 `chrome://accessibility` 입력
-2. 위 두 항목이 체크돼 있는지 확인, 비어 있고 바꿀 수 있으면 체크 → 3초 안에 목록이 바뀌는지 확인
-3. 원상복구는 같은 화면에서 체크 해제 (회색이면 화면에서 바꿀 수 없음)
-- 이 프로그램은 Chrome 설정·바로 가기·실행 옵션을 바꾸지 않습니다. `제어 불가` 상태에서는 Chrome에 키를 보내지 않습니다.
-
----
-
-## 7. 폴더 구조와 팀 통합 포인트
-
-```
-gesture-control/
-├─ run_gui.bat              데스크톱 프로그램 실행 (더블클릭, 영문·CRLF로 유지)
-├─ app_gui.py               데스크톱 프로그램 화면 (Tkinter)
-├─ run.py                   터미널 버전 전체 실행
-├─ step1_hand_check.py      웹캠 + 손 인식만 확인
-├─ check_youtube_control.py 웹캠 없이 자동 포커스 확인
-├─ download_model.py        손 인식 모델 받기
-├─ requirements.txt         설치할 라이브러리 (버전 고정)
-├─ gesture_control/
-│  ├─ config.py             설정값 ([확정]/[임시] 표시)
-│  ├─ common.py             모듈끼리 주고받는 형식: Hand, Command, Event
-│  ├─ camera.py             웹캠 입력                    ← 제안서상 송준섭 담당 영역
-│  ├─ hand_tracker.py       MediaPipe 손 검출·추적       ← 제안서상 송준섭 담당 영역
-│  ├─ gestures.py           제스처 판별 + 오작동 방지     ← 제안서상 고지혁 담당 영역
-│  ├─ controller.py         명령 → 단축키, 결과 판정      ← 제안서상 조하연 담당 영역
-│  ├─ youtube_target.py     유튜브 창/탭 찾기·활성화·플레이어 포커스 (브라우저별 처리 PROFILES)
-│  ├─ workers.py            GUI용 작업 스레드 (카메라·인식 / 제어 / 자동 검색)
-│  └─ overlay.py            미리보기 그리기
-├─ tests/                   자동 테스트 (웹캠·유튜브 없이 실행)
-├─ docs/VERIFICATION.md     작성자 PC에서의 상세 검증·수정 기록
-└─ models/                  (download_model.py 가 만듦, 저장소에는 없음)
-```
-
-다른 팀원 코드와 비교·교체하기 쉽도록 모듈 사이는 `common.py` 형식으로만 주고받습니다.
-- 손 인식: `HandTracker.detect(frame, timestamp_ms) -> list[Hand]` (Left/Right = 실제 손, 좌표 = 거울 화면 기준)
-- 제스처 판별: `GestureRecognizer.update(hands, t) -> list[Event]`
-- 유튜브 제어: `YouTubeController.execute(Command) -> ControlResult`
-
-MediaPipe는 1.x(Tasks API, `HandLandmarker`)를 씁니다. 예전 예제의 `mp.solutions.hands` 는 없고,
-**좌우 반전된 영상을 넣으면 Left/Right가 뒤집히므로** 카메라 원본을 넣고 좌표만 거울 기준으로 바꿉니다.
-
----
-
-## 8. 문제 해결
-
-| 증상 | 확인할 것 |
-|---|---|
-| `run_gui.bat` 이 `[ERROR] Virtual environment not found` | 2절 ④⑤를 하지 않았음 |
-| `run_gui.bat` 이 `[ERROR] Hand model file not found` | 2절 ⑥ |
-| `run_gui.bat` 을 눌러도 창이 안 뜸 | `logs\app.log` 끝부분 확인 (터미널 없이 실행되므로 오류가 여기에 기록됨) |
-| `run_gui.bat` 실행 시 글자가 깨지고 경로 오류 | 배치 파일을 메모장 등으로 한글을 넣어 저장한 경우. 저장소의 원본(영문·CRLF)으로 되돌리기 |
-| `웹캠(0번)을 열 수 없습니다` | 다른 프로그램(줌·팀즈)이 카메라 사용 중인지, Windows 설정 › 개인 정보 › 카메라 권한, `run.py --camera 1` |
-| `No module named ...` | 2절 ⑤ 다시 실행, 명령을 `.\.venv\Scripts\python.exe` 로 실행했는지 |
-| 목록에 `유튜브 영상을 열어 주세요` | 지원 브라우저에서 영상 페이지를 열면 3초 안에 나타남 |
-| `제어 불가: 웹 페이지 정보 없음` | 6절 Chrome 조건 |
-| `실패 (플레이어 찾기 단계)` | 유튜브 홈·검색이 아니라 영상 재생 페이지(`youtube.com/watch…`)를 열기 |
-| `실패 (창 활성화 단계)` | Windows가 창 전환을 막은 경우. 유튜브 창을 한 번 클릭한 뒤 다시 |
-| 단축키가 안 먹음 | 키보드를 영문 입력 상태로 (한글 상태에서는 동작하지 않을 수 있음 — 미검증) |
-| FPS가 10 이하 | 방을 밝게 |
-
----
-
-## 9. 검증 요약 (작성자 PC 한 대)
-
-- 자동 테스트 53개 (제스처 판별, 좌우 반전, 제어 단계, 대상 선택·자동 검색, 작업 스레드)
-- 작성자가 손 제스처로 직접 확인: Edge 탭, Firefox 탭, Chrome 탭(Chrome 재시작 후 포함), Edge 유튜브 앱에서
-  자동 선택·자동 검색, 다른 창이 앞에 있을 때 자동 포커스, 검색창 커서 상태에서의 제어,
-  재생/정지·볼륨·10초 이동 연속, 여러 브라우저가 열려 있을 때 선택한 대상만 제어, 대상 변경·닫기 후 동작
-- 확인하지 않은 것: 다른 PC, 다른 브라우저 버전, Chrome 유튜브 앱, 1~2m 거리·어두운 조명, 한글 입력 상태
-
-상세 기록(발견한 문제, 원인, 수정, 당시의 확인 범위): [docs/VERIFICATION.md](docs/VERIFICATION.md)
-
-## 10. 알려진 한계
-- Windows 전용 / 유튜브 화면 구조(`movie_player` 등)가 바뀌면 플레이어를 못 찾을 수 있음
-- 명령이 실행되면 유튜브 창이 맨 앞으로 옴
-- 첫 명령은 창·탭 탐색 때문에 0.5~2초 걸릴 수 있음
-- 시작·종료 제스처, 쿨다운, 이동 거리 등은 샘플용 임시값
+## 안 될 때
+- `run_gui.bat` 에 `[ERROR]` 가 나오면 → 설치 4번을 다시 확인
+- 웹캠이 안 켜지면 → 줌·팀즈 등 카메라를 쓰는 프로그램 종료
+- 목록에 `제어 불가` 가 보이면 (Chrome) → Chrome 주소창에 `chrome://accessibility` 를 열어
+  `Native accessibility API support`, `Web accessibility` 가 체크돼 있는지 확인
+- 그 밖의 오류는 `logs\app.log` 에 기록됩니다
