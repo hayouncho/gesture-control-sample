@@ -1,15 +1,6 @@
-# 손 제스처 유튜브 제어 — 개인 샘플 (조하연)
+# 개인 샘플
 
-컴퓨터비전 1조 팀 비교용 **개인 샘플**입니다 (최종 통합본 아님).
-웹캠으로 손동작을 인식해 유튜브 영상을 제어합니다. 작성자 PC(Windows 11)에서만 실행해 봤습니다.
-
-## 준비물
-- Windows 10/11
-- Python 3.14
-- 웹캠
-- 유튜브를 열 브라우저 (Edge, Firefox, Chrome) 또는 Edge로 설치한 유튜브 앱
-
-## 설치 (처음 한 번)
+## 설치
 1. https://www.python.org/downloads/windows/ 에서 Python 3.14 설치 (`Add python.exe to PATH` 체크)
 2. 이 저장소에서 `Code` → `Download ZIP` → 압축 풀기
 3. 압축 푼 폴더에서 빈 곳을 Shift + 오른쪽 클릭 → `터미널에서 열기`
