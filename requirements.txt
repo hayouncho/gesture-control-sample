@@ -1,0 +1,13 @@
+# 개인 샘플이 실행된 PC(Windows 11, Python 3.14.0)에서 확인한 버전입니다.
+# 설치: python -m pip install -r requirements.txt
+
+# 손 인식 (설치하면 opencv-contrib-python 이 함께 설치됨)
+mediapipe==1.2.2
+# 웹캠 입력·화면 표시 — mediapipe가 요구하는 OpenCV와 같은 패키지.
+# opencv-python 을 따로 설치하면 충돌하므로 추가하지 마세요.
+opencv-contrib-python==5.0.0.93
+numpy==2.5.4
+# 데스크톱 프로그램(app_gui.py)의 카메라 화면 표시
+pillow==13.0.0
+# 유튜브 창/탭 찾기·플레이어 포커스 (Windows UI Automation). comtypes 가 함께 설치됨
+uiautomation==2.0.29
